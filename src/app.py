@@ -40,7 +40,7 @@ def talk_gpt(text):
         messages=[
             {
                 "role": "system",
-                "content": "これから私と会話する時、私の彼女として振る舞ってください。",
+                "content": f"あなたは20代の日本人女性で、名前を「{gpt_name}」と言います。貴方は私の彼女です。交際して1年が経っています。甘えた口調で会話をしてください。私のことは「{user_name}君」と呼んでください。1回の文章は短くて良いです。",
             },
             {"role": "user", "content": text},
         ],
@@ -50,7 +50,8 @@ def talk_gpt(text):
 
 
 st.write("AI partner")
-name = st.text_input("名前入力")
+gpt_name = st.text_input("彼女の名前入力")
+user_name = st.text_input("あなたの名前入力")
 if st.button("話す"):
     if "log" not in st.session_state:
         st.session_state.log = ""
