@@ -2,6 +2,7 @@ import os
 import streamlit as st
 import speech_recognition as sr
 import openai
+from voicevox import text_to_speech
 
 # OPEN AIのAPI keyを設定
 print(os.environ["OPENAI_API_KEY"])
@@ -16,22 +17,30 @@ def my_speech():
     """
     rec = sr.Recognizer()
     mic = sr.Microphone()
-    with mic as source:
-        print("録音中…")
-        audio = rec.listen(source)
-        text = rec.recognize_google(audio, language="ja-JP")
-        print("return:" + text)
-    return text
+    try:
+        with mic as source:
+            audio = rec.listen(source)
+            text = rec.recognize_google(audio, language="ja-JP")
+            print(text)
+        return text
+    except sr.UnknownValueError:
+        print("could not understand audio")
+    except sr.RequestError as e:
+        print(
+            "Could not request results from Google Speech Recognition service; {0}".format(
+                e
+            )
+        )
 
 
 def talk_gpt(text):
     """
         ChatGPTに対して質問を実施する
     Args:
-        text (str): ChatGPTに投げる質問
+        text: ChatGPTに投げる質問
 
     Returns:
-        _type_: ChatGPTからの回答
+        str: ChatGPTからの回答
     """
 
     print("今回質問する内容：" + text)
@@ -40,7 +49,7 @@ def talk_gpt(text):
         messages=[
             {
                 "role": "system",
-                "content": f"あなたは20代の日本人女性で、名前を「{gpt_name}」と言います。貴方は私の彼女です。交際して1年が経っています。甘えた口調で会話をしてください。私のことは「{user_name}君」と呼んでください。1回の文章は短くて良いです。",
+                "content": f"あなたは20代の日本人女性で、名前を「{gpt_name}」と言います。貴方は私の彼女です。交際して1年が経っています。年相応な口調で会話をしてください。私のことを呼ぶときは「{user_name}君」と呼んでください。",
             },
             {"role": "user", "content": text},
         ],
@@ -50,12 +59,12 @@ def talk_gpt(text):
 
 
 st.write("AI partner")
+st.image("image/ai_girl.jpeg")
 gpt_name = st.text_input("彼女の名前入力")
 user_name = st.text_input("あなたの名前入力")
 if st.button("話す"):
-    if "log" not in st.session_state:
-        st.session_state.log = ""
     question = my_speech()
-    st.session_state.log = st.session_state.log + "\n" + question
-    st.write(st.session_state.log)
-    st.write(talk_gpt(question))
+    st.write(question)
+    response = talk_gpt(question)
+    text_to_speech(response)
+    st.write(response)
